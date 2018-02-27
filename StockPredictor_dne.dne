@@ -1,0 +1,676 @@
+// ~->[DNET-1]->~
+
+// File created by GmytrasiewiczP at UIC using Netica 3.27 on Oct 26, 2017 at 21:35:33.
+
+bnet StockPredictor {
+AutoCompile = TRUE;
+autoupdate = TRUE;
+whenchanged = 1509071651;
+
+visual V1 {
+	defdispform = BELIEFBARS;
+	nodelabeling = TITLE;
+	NodeMaxNumEntries = 50;
+	nodefont = font {shape= "Arial"; size= 10;};
+	linkfont = font {shape= "Arial"; size= 9;};
+	windowposn = (0, -6, 1317, 623);
+	resolution = 72;
+	magnification = 0.825838;
+	drawingbounds = (16062, 7595);
+	showpagebreaks = FALSE;
+	usegrid = TRUE;
+	gridspace = (6, 6);
+	NodeSet Node {BuiltIn = 1; Color = 0xc0c0c0;};
+	NodeSet Nature {BuiltIn = 1; Color = 0xf8eed2;};
+	NodeSet Deterministic {BuiltIn = 1; Color = 0xd3caa6;};
+	NodeSet Finding {BuiltIn = 1; Color = 0xc8c8c8;};
+	NodeSet Constant {BuiltIn = 1; Color = 0xffffff;};
+	NodeSet ConstantValue {BuiltIn = 1; Color = 0xffffb4;};
+	NodeSet Utility {BuiltIn = 1; Color = 0xffbdbd;};
+	NodeSet Decision {BuiltIn = 1; Color = 0xdee8ff;};
+	NodeSet Documentation {BuiltIn = 1; Color = 0xf0fafa;};
+	NodeSet Title {BuiltIn = 1; Color = 0xffffff;};
+	PrinterSetting A {
+		margins = (1270, 1270, 1270, 1270);
+		landscape = FALSE;
+		magnify = 1;
+		};
+	};
+
+node More_Demand_Or_Supply {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Demand, Supply);
+	parents = ();
+	probs = 
+		// Demand       Supply       
+		  (0.95,        0.05);
+	whenchanged = 1509060353;
+	belief = (0.95, 0.05);
+	visual V1 {
+		center = (456, 132);
+		height = 27;
+		};
+	};
+
+node Political_Support {
+	kind = NATURE;
+	discrete = TRUE;
+	states = (For, Against);
+	parents = ();
+	whenchanged = 1509060357;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (84, 372);
+		height = 6;
+		};
+	};
+
+node Industry_Productivity {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Low);
+	parents = (Political_Support);
+	probs = 
+		// High         Low            // Political_Support 
+		 ((0.8,         0.2),          // For               
+		  (0.4,         0.6));         // Against           ;
+	whenchanged = 1509055555;
+	belief = (0.6, 0.4);
+	visual V1 {
+		center = (84, 258);
+		height = 5;
+		};
+	};
+
+node Wage_Increase {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Rapid, Slow);
+	parents = (Industry_Productivity);
+	probs = 
+		// Rapid        Slow           // Industry_Productivity 
+		 ((0.7,         0.3),          // High                  
+		  (0.2,         0.8));         // Low                   ;
+	numcases = 1;
+	whenchanged = 1509060359;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (84, 168);
+		height = 4;
+		};
+	};
+
+node Natural_Disaster {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	probs = 
+		// True         False        
+		  (3e-9,        1);
+	whenchanged = 1508823457;
+	belief = (3e-9, 1);
+	visual V1 {
+		center = (300, 66);
+		height = 1;
+		};
+	};
+
+node Terrorist_Activities {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	probs = 
+		// True         False        
+		  (3e-13,       1);
+	whenchanged = 1508823460;
+	belief = (3e-13, 1);
+	visual V1 {
+		center = (138, 66);
+		height = 2;
+		};
+	};
+
+node Raw_Material_Cost {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Increase, Decrease);
+	parents = (Natural_Disaster, Terrorist_Activities);
+	probs = 
+		// Increase     Decrease        // Natural_Disaster Terrorist_Activities 
+		(((0.98,        0.02),          // True             True                 
+		  (0.8,         0.2)),          // True             False                
+		 ((0.7,         0.3),           // False            True                 
+		  (0.5,         0.5)));         // False            False                ;
+	whenchanged = 1509060351;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (258, 162);
+		height = 3;
+		};
+	};
+
+node Inflation {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Moderate, Low);
+	parents = (More_Demand_Or_Supply, Wage_Increase, Raw_Material_Cost);
+	probs = 
+		//  High         Moderate     Low              // More_Demand_Or_Supply Wage_Increase Raw_Material_Cost 
+		((((0.85,        0.13,        0.02),           // Demand                Rapid         Increase          
+		   (0.81,        0.11,        0.08)),          // Demand                Rapid         Decrease          
+		  ((0.4,         0.5,         0.1),            // Demand                Slow          Increase          
+		   (0.25,        0.55,        0.2))),          // Demand                Slow          Decrease          
+		 (((0.2,         0.6,         0.2),            // Supply                Rapid         Increase          
+		   (0.15,        0.55,        0.3)),           // Supply                Rapid         Decrease          
+		  ((0.05,        0.33,        0.62),           // Supply                Slow          Increase          
+		   (0.08,        0.12,        0.8))));         // Supply                Slow          Decrease          ;
+	whenchanged = 1508823462;
+	belief = (0.554625, 0.326375, 0.119);
+	visual V1 {
+		center = (288, 312);
+		height = 14;
+		};
+	};
+
+node Interest_Rates {
+	kind = NATURE;
+	discrete = TRUE;
+	states = (Increasing, Decreasing);
+	parents = ();
+	whenchanged = 1509070796;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (654, 138);
+		height = 26;
+		};
+	};
+
+node Currency_Exch_Rate {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Appreciating, Depreciating);
+	parents = (Interest_Rates, Inflation);
+	probs = 
+		// Appreciating Depreciating    // Interest_Rates Inflation 
+		(((0.46,        0.54),          // Increasing     High      
+		  (0.75,        0.25),          // Increasing     Moderate  
+		  (0.9,         0.1)),          // Increasing     Low       
+		 ((0.06,        0.94),          // Decreasing     High      
+		  (0.4,         0.6),           // Decreasing     Moderate  
+		  (0.53,        0.47)));        // Decreasing     Low       ;
+	whenchanged = 1508823499;
+	belief = (0.4169531, 0.5830469);
+	visual V1 {
+		center = (528, 264);
+		height = 20;
+		};
+	};
+
+node Derivative_Use {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Excessive, Low);
+	parents = (Currency_Exch_Rate);
+	probs = 
+		// Excessive    Low            // Currency_Exch_Rate 
+		 ((0.7632,      0.2368),       // Appreciating       
+		  (0.8891,      0.1109));      // Depreciating       ;
+	whenchanged = 1509060355;
+	belief = (0.8366056, 0.1633944);
+	visual V1 {
+		center = (486, 366);
+		height = 19;
+		};
+	};
+
+node Predicted_Stock_Movement {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Up, Down);
+	parents = (Inflation, Derivative_Use);
+	probs = 
+		// Up           Down            // Inflation Derivative_Use 
+		(((0.7,         0.3),           // High      Excessive      
+		  (0.65,        0.35)),         // High      Low            
+		 ((0.96,        0.04),          // Moderate  Excessive      
+		  (0.93,        0.07)),         // Moderate  Low            
+		 ((0.55,        0.45),          // Low       Excessive      
+		  (0.25,        0.75)));        // Low       Low            ;
+	whenchanged = 1509071651;
+	belief = (0.7540569, 0.2459431);
+	visual V1 {
+		center = (480, 480);
+		height = 7;
+		};
+	};
+
+node Large_New_Contract {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	whenchanged = 1509063884;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (762, 570);
+		height = 24;
+		};
+	};
+
+node Dividends {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Higher_than_Expected, Lower_than_Expected);
+	parents = ();
+	whenchanged = 1509070889;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (1032, 234);
+		height = 18;
+		};
+	};
+
+node CEO_Expired {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	probs = 
+		// True         False        
+		  (3e-8,        1);
+	EqnDirty = TRUE;
+	whenchanged = 1509071519;
+	belief = (3e-8, 1);
+	visual V1 {
+		center = (1158, 294);
+		height = 15;
+		};
+	};
+
+node CEO_Replaced {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = (CEO_Expired);
+	probs = 
+		// True         False          // CEO_Expired 
+		 ((0.99999,     9.999901e-6),  // True        
+		  (0.5,         0.5));         // False       ;
+	EqnDirty = TRUE;
+	whenchanged = 1509071435;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (984, 366);
+		height = 25;
+		};
+	};
+
+node On_Balance_Volume {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Low);
+	parents = ();
+	probs = 
+		// High         Low          
+		  (1,           1.175493e-40);
+	whenchanged = 1509071651;
+	belief = (1, 1.175493e-40);
+	visual V1 {
+		center = (1188, 378);
+		height = 10;
+		};
+	};
+
+node Moving_Avg_Conv_Div {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Low);
+	parents = ();
+	probs = 
+		// High         Low          
+		  (1,           1.175494e-38);
+	whenchanged = 1509071651;
+	belief = (1, 1.175494e-38);
+	visual V1 {
+		center = (1194, 462);
+		height = 11;
+		};
+	};
+
+node Relative_Strength_Index {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Medium, Low);
+	parents = ();
+	probs = 
+		// High         Medium       Low          
+		  (1,           1.175494e-38,1.175494e-38);
+	whenchanged = 1509071651;
+	belief = (1, 1.175494e-38, 1.175494e-38);
+	visual V1 {
+		center = (1134, 552);
+		height = 12;
+		};
+	};
+
+node Stochastic_Oscillator {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (High, Medium, Low);
+	parents = ();
+	probs = 
+		// High         Medium       Low          
+		  (1,           1.175494e-38,1.175494e-38);
+	whenchanged = 1509071651;
+	belief = (1, 1.175494e-38, 1.175494e-38);
+	visual V1 {
+		center = (948, 558);
+		height = 13;
+		};
+	};
+
+node Historical_Trends {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Up, Down);
+	parents = (On_Balance_Volume, Moving_Avg_Conv_Div, Relative_Strength_Index, Stochastic_Oscillator);
+	probs = 
+		//   Up           Down              // On_Balance_Volume Moving_Avg_Conv_Div Relative_Strength_Index Stochastic_Oscillator 
+		(((((@undef,      @undef),          // High              High                High                    High                  
+		    (@undef,      @undef),          // High              High                High                    Medium                
+		    (@undef,      @undef)),         // High              High                High                    Low                   
+		   ((0.15,        0.85),            // High              High                Medium                  High                  
+		    (0.85,        0.15),            // High              High                Medium                  Medium                
+		    (@undef,      @undef)),         // High              High                Medium                  Low                   
+		   ((@undef,      @undef),          // High              High                Low                     High                  
+		    (@undef,      @undef),          // High              High                Low                     Medium                
+		    (0.85,        0.15))),          // High              High                Low                     Low                   
+		  (((@undef,      @undef),          // High              Low                 High                    High                  
+		    (@undef,      @undef),          // High              Low                 High                    Medium                
+		    (@undef,      @undef)),         // High              Low                 High                    Low                   
+		   ((@undef,      @undef),          // High              Low                 Medium                  High                  
+		    (@undef,      @undef),          // High              Low                 Medium                  Medium                
+		    (@undef,      @undef)),         // High              Low                 Medium                  Low                   
+		   ((@undef,      @undef),          // High              Low                 Low                     High                  
+		    (@undef,      @undef),          // High              Low                 Low                     Medium                
+		    (@undef,      @undef)))),       // High              Low                 Low                     Low                   
+		 ((((0.2,         0.8),             // Low               High                High                    High                  
+		    (@undef,      @undef),          // Low               High                High                    Medium                
+		    (@undef,      @undef)),         // Low               High                High                    Low                   
+		   ((@undef,      @undef),          // Low               High                Medium                  High                  
+		    (@undef,      @undef),          // Low               High                Medium                  Medium                
+		    (@undef,      @undef)),         // Low               High                Medium                  Low                   
+		   ((@undef,      @undef),          // Low               High                Low                     High                  
+		    (@undef,      @undef),          // Low               High                Low                     Medium                
+		    (@undef,      @undef))),        // Low               High                Low                     Low                   
+		  (((0.85,        0.15),            // Low               Low                 High                    High                  
+		    (@undef,      @undef),          // Low               Low                 High                    Medium                
+		    (@undef,      @undef)),         // Low               Low                 High                    Low                   
+		   ((0.15,        0.85),            // Low               Low                 Medium                  High                  
+		    (@undef,      @undef),          // Low               Low                 Medium                  Medium                
+		    (@undef,      @undef)),         // Low               Low                 Medium                  Low                   
+		   ((@undef,      @undef),          // Low               Low                 Low                     High                  
+		    (@undef,      @undef),          // Low               Low                 Low                     Medium                
+		    (@undef,      @undef)))));      // Low               Low                 Low                     Low                   ;
+	whenchanged = 1509071449;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (948, 450);
+		height = 9;
+		link 3 {
+			path = ((1066, 515), (997, 478));
+			};
+		};
+	};
+
+node New_Product_Announcement {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	probs = 
+		// True         False        
+		  (1.175493e-40,1);
+	whenchanged = 1509071411;
+	belief = (1.175633e-40, 1);
+	visual V1 {
+		center = (948, 144);
+		height = 21;
+		};
+	};
+
+node Being_Acquired {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	whenchanged = 1509070894;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (666, 324);
+		height = 23;
+		};
+	};
+
+node Acquiring {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (True, False);
+	parents = ();
+	whenchanged = 1509070896;
+	belief = (0.5, 0.5);
+	visual V1 {
+		center = (792, 216);
+		height = 22;
+		};
+	};
+
+node Company_Performance {
+	kind = NATURE;
+	discrete = TRUE;
+	chance = CHANCE;
+	states = (Up, Down);
+	parents = (Large_New_Contract, Dividends, CEO_Replaced, Historical_Trends, New_Product_Announcement, Being_Acquired, Acquiring);
+	probs = 
+		//      Up           Down                 // Large_New_Contract Dividends        CEO_Replaced Historical_Trends New_Product_Announcement Being_Acquired Acquiring 
+		((((((((0.9881,      0.0119),             // True               Higher than Expe True         Up                True                     True           True      
+		       (0.9981,      0.0019)),            // True               Higher than Expe True         Up                True                     True           False     
+		      ((0.9781,      0.0219),             // True               Higher than Expe True         Up                True                     False          True      
+		       (0.9881,      0.0119))),           // True               Higher than Expe True         Up                True                     False          False     
+		     (((0.9681,      0.0319),             // True               Higher than Expe True         Up                False                    True           True      
+		       (0.9781,      0.0219)),            // True               Higher than Expe True         Up                False                    True           False     
+		      ((0.9581,      0.04190004),         // True               Higher than Expe True         Up                False                    False          True      
+		       (0.9681,      0.0319)))),          // True               Higher than Expe True         Up                False                    False          False     
+		    ((((0.9481,      0.0519),             // True               Higher than Expe True         Down              True                     True           True      
+		       (0.9581,      0.04190004)),        // True               Higher than Expe True         Down              True                     True           False     
+		      ((0.9381,      0.0619),             // True               Higher than Expe True         Down              True                     False          True      
+		       (0.9481,      0.0519))),           // True               Higher than Expe True         Down              True                     False          False     
+		     (((0.9181,      0.0819),             // True               Higher than Expe True         Down              False                    True           True      
+		       (0.9281,      0.0719)),            // True               Higher than Expe True         Down              False                    True           False     
+		      ((0.9081,      0.09190005),         // True               Higher than Expe True         Down              False                    False          True      
+		       (0.9181,      0.0819))))),         // True               Higher than Expe True         Down              False                    False          False     
+		   (((((0.84486,     0.15514),            // True               Higher than Expe False        Up                True                     True           True      
+		       (0.85486,     0.14514)),           // True               Higher than Expe False        Up                True                     True           False     
+		      ((0.83486,     0.16514),            // True               Higher than Expe False        Up                True                     False          True      
+		       (0.84486,     0.15514))),          // True               Higher than Expe False        Up                True                     False          False     
+		     (((0.81486,     0.18514),            // True               Higher than Expe False        Up                False                    True           True      
+		       (0.82486,     0.17514)),           // True               Higher than Expe False        Up                False                    True           False     
+		      ((0.80486,     0.19514),            // True               Higher than Expe False        Up                False                    False          True      
+		       (0.81486,     0.18514)))),         // True               Higher than Expe False        Up                False                    False          False     
+		    ((((0.80486,     0.19514),            // True               Higher than Expe False        Down              True                     True           True      
+		       (0.81486,     0.18514)),           // True               Higher than Expe False        Down              True                     True           False     
+		      ((0.79486,     0.20514),            // True               Higher than Expe False        Down              True                     False          True      
+		       (0.80486,     0.19514))),          // True               Higher than Expe False        Down              True                     False          False     
+		     (((0.77486,     0.22514),            // True               Higher than Expe False        Down              False                    True           True      
+		       (0.78486,     0.21514)),           // True               Higher than Expe False        Down              False                    True           False     
+		      ((0.76486,     0.23514),            // True               Higher than Expe False        Down              False                    False          True      
+		       (0.77486,     0.22514)))))),       // True               Higher than Expe False        Down              False                    False          False     
+		  ((((((0.40169,     0.59831),            // True               Lower than Expec True         Up                True                     True           True      
+		       (0.41169,     0.58831)),           // True               Lower than Expec True         Up                True                     True           False     
+		      ((0.39169,     0.60831),            // True               Lower than Expec True         Up                True                     False          True      
+		       (0.40169,     0.59831))),          // True               Lower than Expec True         Up                True                     False          False     
+		     (((0.38169,     0.61831),            // True               Lower than Expec True         Up                False                    True           True      
+		       (0.39169,     0.60831)),           // True               Lower than Expec True         Up                False                    True           False     
+		      ((0.37169,     0.62831),            // True               Lower than Expec True         Up                False                    False          True      
+		       (0.38169,     0.61831)))),         // True               Lower than Expec True         Up                False                    False          False     
+		    ((((0.36169,     0.63831),            // True               Lower than Expec True         Down              True                     True           True      
+		       (0.37169,     0.62831)),           // True               Lower than Expec True         Down              True                     True           False     
+		      ((0.35169,     0.64831),            // True               Lower than Expec True         Down              True                     False          True      
+		       (0.36169,     0.63831))),          // True               Lower than Expec True         Down              True                     False          False     
+		     (((0.33169,     0.66831),            // True               Lower than Expec True         Down              False                    True           True      
+		       (0.34169,     0.6583101)),         // True               Lower than Expec True         Down              False                    True           False     
+		      ((0.32169,     0.67831),            // True               Lower than Expec True         Down              False                    False          True      
+		       (0.33169,     0.66831))))),        // True               Lower than Expec True         Down              False                    False          False     
+		   (((((0.22762,     0.77238),            // True               Lower than Expec False        Up                True                     True           True      
+		       (0.23762,     0.76238)),           // True               Lower than Expec False        Up                True                     True           False     
+		      ((0.21762,     0.78238),            // True               Lower than Expec False        Up                True                     False          True      
+		       (0.22762,     0.77238))),          // True               Lower than Expec False        Up                True                     False          False     
+		     (((0.19762,     0.80238),            // True               Lower than Expec False        Up                False                    True           True      
+		       (0.20762,     0.79238)),           // True               Lower than Expec False        Up                False                    True           False     
+		      ((0.18762,     0.81238),            // True               Lower than Expec False        Up                False                    False          True      
+		       (0.19762,     0.80238)))),         // True               Lower than Expec False        Up                False                    False          False     
+		    ((((0.07762,     0.92238),            // True               Lower than Expec False        Down              True                     True           True      
+		       (0.08762,     0.91238)),           // True               Lower than Expec False        Down              True                     True           False     
+		      ((0.06762,     0.93238),            // True               Lower than Expec False        Down              True                     False          True      
+		       (0.07762,     0.92238))),          // True               Lower than Expec False        Down              True                     False          False     
+		     (((0.04762,     0.95238),            // True               Lower than Expec False        Down              False                    True           True      
+		       (0.05762,     0.94238)),           // True               Lower than Expec False        Down              False                    True           False     
+		      ((0.03762,     0.96238),            // True               Lower than Expec False        Down              False                    False          True      
+		       (0.04762,     0.95238))))))),      // True               Lower than Expec False        Down              False                    False          False     
+		 (((((((0.972,       0.02800006),         // False              Higher than Expe True         Up                True                     True           True      
+		       (0.9881,      0.0119)),            // False              Higher than Expe True         Up                True                     True           False     
+		      ((0.9681,      0.03190005),         // False              Higher than Expe True         Up                True                     False          True      
+		       (0.9781,      0.0219))),           // False              Higher than Expe True         Up                True                     False          False     
+		     (((0.9581,      0.04190004),         // False              Higher than Expe True         Up                False                    True           True      
+		       (0.9681,      0.03190005)),        // False              Higher than Expe True         Up                False                    True           False     
+		      ((0.9481,      0.0519),             // False              Higher than Expe True         Up                False                    False          True      
+		       (0.9581,      0.04190004)))),      // False              Higher than Expe True         Up                False                    False          False     
+		    ((((0.9381,      0.0619),             // False              Higher than Expe True         Down              True                     True           True      
+		       (0.9481,      0.0519)),            // False              Higher than Expe True         Down              True                     True           False     
+		      ((0.9281,      0.0719),             // False              Higher than Expe True         Down              True                     False          True      
+		       (0.9381,      0.0619))),           // False              Higher than Expe True         Down              True                     False          False     
+		     (((0.8981,      0.1019),             // False              Higher than Expe True         Down              False                    True           True      
+		       (0.9181,      0.0819)),            // False              Higher than Expe True         Down              False                    True           False     
+		      ((0.8981,      0.1019),             // False              Higher than Expe True         Down              False                    False          True      
+		       (0.9081,      0.09190005))))),     // False              Higher than Expe True         Down              False                    False          False     
+		   (((((0.83486,     0.16514),            // False              Higher than Expe False        Up                True                     True           True      
+		       (0.84486,     0.15514)),           // False              Higher than Expe False        Up                True                     True           False     
+		      ((0.82486,     0.17514),            // False              Higher than Expe False        Up                True                     False          True      
+		       (0.83486,     0.16514))),          // False              Higher than Expe False        Up                True                     False          False     
+		     (((0.80486,     0.19514),            // False              Higher than Expe False        Up                False                    True           True      
+		       (0.81486,     0.18514)),           // False              Higher than Expe False        Up                False                    True           False     
+		      ((0.79486,     0.20514),            // False              Higher than Expe False        Up                False                    False          True      
+		       (0.80486,     0.19514)))),         // False              Higher than Expe False        Up                False                    False          False     
+		    ((((0.79486,     0.20514),            // False              Higher than Expe False        Down              True                     True           True      
+		       (0.80486,     0.19514)),           // False              Higher than Expe False        Down              True                     True           False     
+		      ((0.78486,     0.21514),            // False              Higher than Expe False        Down              True                     False          True      
+		       (0.79486,     0.20514))),          // False              Higher than Expe False        Down              True                     False          False     
+		     (((0.76486,     0.23514),            // False              Higher than Expe False        Down              False                    True           True      
+		       (0.77486,     0.22514)),           // False              Higher than Expe False        Down              False                    True           False     
+		      ((0.75486,     0.24514),            // False              Higher than Expe False        Down              False                    False          True      
+		       (0.76486,     0.23514)))))),       // False              Higher than Expe False        Down              False                    False          False     
+		  ((((((0.39169,     0.60831),            // False              Lower than Expec True         Up                True                     True           True      
+		       (0.40169,     0.59831)),           // False              Lower than Expec True         Up                True                     True           False     
+		      ((0.40169,     0.59831),            // False              Lower than Expec True         Up                True                     False          True      
+		       (0.39169,     0.60831))),          // False              Lower than Expec True         Up                True                     False          False     
+		     (((0.37169,     0.62831),            // False              Lower than Expec True         Up                False                    True           True      
+		       (0.38169,     0.61831)),           // False              Lower than Expec True         Up                False                    True           False     
+		      ((0.36169,     0.63831),            // False              Lower than Expec True         Up                False                    False          True      
+		       (0.37169,     0.62831)))),         // False              Lower than Expec True         Up                False                    False          False     
+		    ((((0.35169,     0.64831),            // False              Lower than Expec True         Down              True                     True           True      
+		       (0.36169,     0.63831)),           // False              Lower than Expec True         Down              True                     True           False     
+		      ((0.34169,     0.6583101),          // False              Lower than Expec True         Down              True                     False          True      
+		       (0.35169,     0.64831))),          // False              Lower than Expec True         Down              True                     False          False     
+		     (((0.32169,     0.67831),            // False              Lower than Expec True         Down              False                    True           True      
+		       (0.33169,     0.66831)),           // False              Lower than Expec True         Down              False                    True           False     
+		      ((0.31169,     0.68831),            // False              Lower than Expec True         Down              False                    False          True      
+		       (0.32169,     0.67831))))),        // False              Lower than Expec True         Down              False                    False          False     
+		   (((((0.21762,     0.78238),            // False              Lower than Expec False        Up                True                     True           True      
+		       (0.22762,     0.77238)),           // False              Lower than Expec False        Up                True                     True           False     
+		      ((0.20762,     0.79238),            // False              Lower than Expec False        Up                True                     False          True      
+		       (0.21762,     0.78238))),          // False              Lower than Expec False        Up                True                     False          False     
+		     (((0.18762,     0.81238),            // False              Lower than Expec False        Up                False                    True           True      
+		       (0.19762,     0.80238)),           // False              Lower than Expec False        Up                False                    True           False     
+		      ((0.17762,     0.82238),            // False              Lower than Expec False        Up                False                    False          True      
+		       (0.18762,     0.81238)))),         // False              Lower than Expec False        Up                False                    False          False     
+		    ((((0.06762,     0.93238),            // False              Lower than Expec False        Down              True                     True           True      
+		       (0.07762,     0.92238)),           // False              Lower than Expec False        Down              True                     True           False     
+		      ((0.05762,     0.94238),            // False              Lower than Expec False        Down              True                     False          True      
+		       (0.06762,     0.93238))),          // False              Lower than Expec False        Down              True                     False          False     
+		     (((0.03762,     0.96238),            // False              Lower than Expec False        Down              False                    True           True      
+		       (0.04762,     0.95238)),           // False              Lower than Expec False        Down              False                    True           False     
+		      ((0.02762,     0.97238),            // False              Lower than Expec False        Down              False                    False          True      
+		       (0.03762,     0.96238))))))));     // False              Lower than Expec False        Down              False                    False          False     ;
+	whenchanged = 1509071645;
+	belief = (0.5491613, 0.4508387);
+	visual V1 {
+		center = (702, 480);
+		height = 8;
+		};
+	};
+
+node Suggested_Action {
+	kind = DECISION;
+	discrete = TRUE;
+	chance = DETERMIN;
+	states = (Buy, Sell);
+	parents = ();
+	functable = 
+		   Buy;
+	whenchanged = 1509071425;
+	belief = (1, 0);
+	visual V1 {
+		center = (600, 636);
+		height = 17;
+		};
+	};
+
+node Satisfaction {
+	kind = UTILITY;
+	discrete = FALSE;
+	measure = RATIO;
+	chance = DETERMIN;
+	parents = (Company_Performance, Predicted_Stock_Movement, Suggested_Action);
+	functable = 
+		                   // Company_Performance Predicted_Stock_Movement Suggested_Action 
+		(((95,             // Up                  Up                       Buy              
+		   5),             // Up                  Up                       Sell             
+		  (68,             // Up                  Down                     Buy              
+		   32)),           // Up                  Down                     Sell             
+		 ((36,             // Down                Up                       Buy              
+		   64),            // Down                Up                       Sell             
+		  (9.44,           // Down                Down                     Buy              
+		   89.56)));       // Down                Down                     Sell             ;
+	whenchanged = 1509060799;
+	visual V1 {
+		center = (600, 564);
+		height = 16;
+		};
+	};
+ElimOrder = (Political_Support, Industry_Productivity, CEO_Expired, Natural_Disaster, Terrorist_Activities, Interest_Rates, Currency_Exch_Rate, Derivative_Use, More_Demand_Or_Supply, Wage_Increase, Raw_Material_Cost, Inflation, Predicted_Stock_Movement, On_Balance_Volume, Moving_Avg_Conv_Div, Relative_Strength_Index, Stochastic_Oscillator, Large_New_Contract, Dividends, CEO_Replaced, Historical_Trends, New_Product_Announcement, Being_Acquired, Acquiring, Company_Performance, Suggested_Action);
+};
